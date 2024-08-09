@@ -3,9 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - dev
-    paths:
-      - 'model/**'
+      - test
 
 jobs:
   build-deploy:
@@ -25,13 +23,14 @@ jobs:
           cd model
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
+      
       - name: Create .env file
         run: |
           cd model
-          touch .env
-          echo '${{ secrets.DJANGO_ENV }}' >> .env
-          
+          cat <<EOF > .env
+          ${{ secrets.DJANGO_ENV }}
+          EOF
+        
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -46,7 +45,7 @@ jobs:
       - name: Build and Tag Docker images
         run: |
           cd model
-          docker-compose -f docker-compose.yml build
+          docker compose -f docker-compose.yml build
           docker tag django-server:latest ${{ steps.login-ecr.outputs.registry }}/diarist-ai-server:django-server-latest
           docker tag celery-worker:latest ${{ steps.login-ecr.outputs.registry }}/diarist-ai-server:celery-worker-latest
 
@@ -67,3 +66,4 @@ jobs:
             docker-compose down
             docker-compose pull
             docker-compose up -d
+          debug: true
