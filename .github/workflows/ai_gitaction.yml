@@ -64,7 +64,6 @@ jobs:
           script_stop: true
           script: |
             cd /home/ubuntu
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
-          debug: true
+            docker compose down
+            docker compose pull
+            docker compose up -d
